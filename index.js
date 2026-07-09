@@ -2,7 +2,7 @@ import { eventSource, event_types } from '../../../../script.js';
 import { generateRaw } from '../../../../script.js';
 import { callPopup } from '../../../../popup.js';
 import { chat, saveChatDebounced } from '../../../../chat.js';
-import { getContext, extension_settings } from '../../../extensions.js';
+import { getContext } from '../../../../extensions.js';
 
 const extensionName = 'dynamic-questions';
 
@@ -154,18 +154,16 @@ async function onMessageSent(messageId) {
 
 // Регистрируем хук при загрузке плагина
 jQuery(async () => {
-    try {
-        // Мы не вызываем getContext() здесь, так как ST может быть не до конца инициализирован!
-        // Вместо этого используем импортированный объект extension_settings
-        
-        // Инициализация настроек
-        if (!extension_settings[extensionName]) {
-            extension_settings[extensionName] = { enabled: true };
-        }
-        isPluginEnabled = extension_settings[extensionName].enabled !== false;
+    // В зависимости от версии ST, событие может называться MESSAGE_SENT или USER_MESSAGE_RENDERED
+    if (eventSource && eventSource.on) {
+        eventSource.on(event_types.MESSAGE_SENT, onMessageSent);
+        console.log('[DynamicQuestions] Плагин успешно загружен и хук MESSAGE_SENT установлен.');
+    } else {
+        console.error('[DynamicQuestions] eventSource не найден. Плагин не может быть инициализирован.');
+    }
 
-        // Используем встроенный HTML, чтобы избежать ошибок 404 при загрузке файлов
-        const settingsHtml = `
+    // Независимая инъекция интерфейса (без обращений к API ST, чтобы избежать ошибок)
+    const settingsHtml = `
 <div id="dynamic_questions_settings" class="dynamic-questions-settings">
   <div class="inline-drawer">
     <div class="inline-drawer-toggle inline-drawer-header">
@@ -175,88 +173,56 @@ jQuery(async () => {
     <div class="inline-drawer-content" style="padding: 10px;">
       <div class="dynamic-questions-section">
         <label class="checkbox_label" title="Включить или выключить генерацию вопросов">
-          <input id="dq_enable_toggle" type="checkbox" />
+          <input id="dq_enable_toggle" type="checkbox" checked />
           <span>Включить Dynamic Questions (ON / OFF)</span>
         </label>
       </div>
     </div>
   </div>
 </div>
-        `;
+    `;
 
-        // Функция для инъекции после появления контейнера
-        let injectAttempts = 0;
-        const injectSettings = () => {
-            const target = $("#extensions_settings2").length
-              ? $("#extensions_settings2")
-              : $("#extensions_settings");
+    let injectAttempts = 0;
+    const injectSettings = () => {
+        const target = $("#extensions_settings2").length
+          ? $("#extensions_settings2")
+          : $("#extensions_settings");
 
-            if (!target.length) {
-                injectAttempts++;
-                if (injectAttempts > 10) {
-                    // ЕСЛИ НЕ НАШЛИ МЕНЮ РАСШИРЕНИЙ - ВЫВОДИМ ПОВЕРХ ВСЕГО ОКНА ДЛЯ ПРОВЕРКИ
-                    if ($("#dq_floating_fallback").length) return;
-                    $('body').append(`
-                        <div id="dq_floating_fallback" style="position:fixed; top:50px; left:50px; z-index:999999; background:#222; border:2px solid red; padding:15px; border-radius:10px; color:white;">
-                            <b>🚨 Dynamic Questions Fallback</b><br>
-                            Меню расширений не найдено!<br>
-                            <label><input type="checkbox" id="dq_enable_toggle_float" ${isPluginEnabled ? 'checked' : ''}> ВКЛЮЧИТЬ ПЛАГИН</label>
-                        </div>
-                    `);
-                    $('#dq_enable_toggle_float').on('change', function() {
-                        isPluginEnabled = !!$(this).prop('checked');
-                        const ctx = getContext();
-                        if (ctx.extension_settings) {
-                            if (!ctx.extension_settings[extensionName]) ctx.extension_settings[extensionName] = {};
-                            ctx.extension_settings[extensionName].enabled = isPluginEnabled;
-                        }
-                        if (typeof ctx.saveSettingsDebounced === 'function') ctx.saveSettingsDebounced();
-                    });
-                    console.error('[DynamicQuestions] ОШИБКА: Контейнер настроек не найден, выведен резервный интерфейс!');
-                    return;
-                }
+        if (!target.length) {
+            injectAttempts++;
+            if (injectAttempts > 10) {
+                if ($("#dq_floating_fallback").length) return;
+                $('body').append(`
+                    <div id="dq_floating_fallback" style="position:fixed; top:50px; left:50px; z-index:999999; background:#222; border:2px solid red; padding:15px; border-radius:10px; color:white;">
+                        <b>🚨 Dynamic Questions Fallback</b><br>
+                        Меню расширений не найдено!<br>
+                        <label><input type="checkbox" id="dq_enable_toggle_float" checked> ВКЛЮЧИТЬ ПЛАГИН</label>
+                    </div>
+                `);
                 
-                // Ждем пока ST создаст контейнер
-                setTimeout(injectSettings, 500);
+                // Простейшая логика переключения (без API)
+                $('#dq_enable_toggle_float').on('change', function() {
+                    isPluginEnabled = !!$(this).prop('checked');
+                });
+                console.error('[DynamicQuestions] ОШИБКА: Контейнер настроек не найден, выведен резервный интерфейс!');
                 return;
             }
-
-            if ($("#dynamic_questions_settings").length) return; // Уже добавлено
-
-            target.append(settingsHtml);
-            
-            // Устанавливаем начальное состояние чекбокса
-            $('#dq_enable_toggle').prop('checked', isPluginEnabled);
-            
-            // Привязываем события
-            $('#dq_enable_toggle').off('change').on('change', function() {
-                isPluginEnabled = !!$(this).prop('checked');
-                
-                const ctx = getContext();
-                if (ctx.extension_settings) {
-                    if (!ctx.extension_settings[extensionName]) ctx.extension_settings[extensionName] = {};
-                    ctx.extension_settings[extensionName].enabled = isPluginEnabled;
-                }
-                
-                if (typeof ctx.saveSettingsDebounced === 'function') {
-                    ctx.saveSettingsDebounced();
-                } else if (typeof window.saveSettingsDebounced === 'function') {
-                    window.saveSettingsDebounced();
-                }
-            });
-            console.log('[DynamicQuestions] Интерфейс успешно отрисован в меню!');
-        };
-        
-        injectSettings();
-
-        // В зависимости от версии ST, событие может называться MESSAGE_SENT или USER_MESSAGE_RENDERED
-        if (eventSource && eventSource.on) {
-            eventSource.on(event_types.MESSAGE_SENT, onMessageSent);
-            console.log('[DynamicQuestions] Плагин успешно загружен и хук MESSAGE_SENT установлен.');
-        } else {
-            console.error('[DynamicQuestions] eventSource не найден. Плагин не может быть инициализирован.');
+            setTimeout(injectSettings, 500);
+            return;
         }
-    } catch (e) {
-        console.error('[DynamicQuestions] Init error:', e);
-    }
+
+        if ($("#dynamic_questions_settings").length) return; // Уже добавлено
+
+        target.append(settingsHtml);
+        
+        // Привязываем простое событие изменения переменной
+        $('#dq_enable_toggle').on('change', function() {
+            isPluginEnabled = !!$(this).prop('checked');
+        });
+        
+        console.log('[DynamicQuestions] Интерфейс успешно отрисован в меню!');
+    };
+    
+    // Запускаем инъекцию независимо от остального кода
+    setTimeout(injectSettings, 1000);
 });
