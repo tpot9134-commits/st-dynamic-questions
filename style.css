@@ -1,0 +1,68 @@
+#dynamic-questions-settings {
+  margin-bottom: 12px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+#dynamic-questions-settings .inline-drawer {
+  border-radius: 12px;
+  overflow: hidden;
+  background: linear-gradient(180deg, rgba(10,10,10,0.96) 0%, rgba(18,18,18,0.96) 100%);
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+}
+
+#dynamic-questions-settings .inline-drawer-header {
+  padding: 12px 14px;
+}
+
+#dynamic-questions-settings .inline-drawer-content {
+  padding: 12px;
+}
+
+.dynamic-questions-section {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 10px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255,255,255,0.08);
+  margin-bottom: 8px;
+  box-sizing: border-box;
+}
+
+.dynamic-questions-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+}
+
+.dynamic-questions-name {
+  font-weight: 700;
+  color: #ededed;
+  cursor: pointer;
+  word-break: break-word;
+  line-height: 1.3;
+}
+
+.dynamic-questions-section input[type="checkbox"] {
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+
+@media (max-width: 768px) {
+  #dynamic-questions-settings .inline-drawer-header {
+    padding: 10px 12px;
+  }
+
+  #dynamic-questions-settings .inline-drawer-content {
+    padding: 10px;
+  }
+
+  .dynamic-questions-section {
+    padding: 9px 10px;
+  }
+
+  .dynamic-questions-name {
+    font-size: 13px;
+  }
+}
