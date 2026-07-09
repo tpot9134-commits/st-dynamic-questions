@@ -2,7 +2,7 @@ import { eventSource, event_types } from '../../../../script.js';
 import { generateRaw } from '../../../../script.js';
 import { callPopup } from '../../../../popup.js';
 import { chat, saveChatDebounced } from '../../../../chat.js';
-import { getContext, extension_settings } from '../../../../extensions.js';
+import { getContext, extension_settings } from '../../../extensions.js';
 
 const extensionName = 'dynamic-questions';
 
