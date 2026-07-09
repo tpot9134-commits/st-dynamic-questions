@@ -2,7 +2,7 @@ import { eventSource, event_types } from '../../../../script.js';
 import { generateRaw } from '../../../../script.js';
 import { callPopup } from '../../../../popup.js';
 import { chat, saveChatDebounced } from '../../../../chat.js';
-import { getContext } from '../../../../extensions.js';
+import { getContext, extension_settings } from '../../../../extensions.js';
 
 const extensionName = 'dynamic-questions';
 
@@ -155,8 +155,8 @@ async function onMessageSent(messageId) {
 // Регистрируем хук при загрузке плагина
 jQuery(async () => {
     try {
-        const context = getContext();
-        let extension_settings = context.extension_settings || {};
+        // Мы не вызываем getContext() здесь, так как ST может быть не до конца инициализирован!
+        // Вместо этого используем импортированный объект extension_settings
         
         // Инициализация настроек
         if (!extension_settings[extensionName]) {
