@@ -1,6 +1,6 @@
 import { generateRaw, saveSettingsDebounced, chat, saveChatDebounced } from '../../../../script.js';
 import { eventSource, event_types } from '../../../events.js';
-import { callPopup } from '../../../popup.js';
+import { callGenericPopup, POPUP_TYPE } from '../../../popup.js';
 import { getContext, extension_settings } from '../../../extensions.js';
 
 const extensionFolderPath = import.meta.url;
@@ -102,7 +102,7 @@ function askUserQuestions(questions) {
             </div>
         `;
 
-        callPopup(popupHtml, 'text', '', {
+        callGenericPopup(popupHtml, POPUP_TYPE.TEXT, '', {
             okButton: 'Подтвердить',
             cancelButton: 'Пропустить',
             wide: false
