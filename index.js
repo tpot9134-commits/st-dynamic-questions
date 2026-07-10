@@ -3,7 +3,8 @@ import { callPopup } from '../../../../popup.js';
 import { chat, saveChatDebounced } from '../../../../chat.js';
 import { getContext, extension_settings } from '../../../extensions.js';
 
-const extensionName = 'dynamic-questions';
+const extensionFolderPath = import.meta.url;
+const extensionName = extensionFolderPath.split('/').slice(-2, -1)[0];
 
 if (!window.DynamicQuestionsData) {
     window.DynamicQuestionsData = {
