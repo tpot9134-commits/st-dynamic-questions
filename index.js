@@ -1,7 +1,6 @@
-import { generateRaw, saveSettingsDebounced } from '../../../../script.js';
+import { generateRaw, saveSettingsDebounced, chat, saveChatDebounced } from '../../../../script.js';
 import { eventSource, event_types } from '../../../events.js';
-import { callPopup } from '../../../../popup.js';
-import { chat, saveChatDebounced } from '../../../../chat.js';
+import { callPopup } from '../../../popup.js';
 import { getContext, extension_settings } from '../../../extensions.js';
 
 const extensionFolderPath = import.meta.url;
