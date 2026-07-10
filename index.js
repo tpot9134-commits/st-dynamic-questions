@@ -1,4 +1,5 @@
-import { eventSource, event_types, generateRaw, saveSettingsDebounced } from '../../../../script.js';
+import { generateRaw, saveSettingsDebounced } from '../../../../script.js';
+import { eventSource, event_types } from '../../../events.js';
 import { callPopup } from '../../../../popup.js';
 import { chat, saveChatDebounced } from '../../../../chat.js';
 import { getContext, extension_settings } from '../../../extensions.js';
